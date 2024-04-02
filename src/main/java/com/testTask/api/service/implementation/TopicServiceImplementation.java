@@ -6,7 +6,6 @@ import com.testTask.api.dto.TopicResponse;
 import com.testTask.api.exceptions.MessageNotFoundException;
 import com.testTask.api.exceptions.TopicNotFoundException;
 import com.testTask.api.models.Message;
-import com.testTask.api.repository.MessageRepository;
 import com.testTask.api.repository.TopicRepository;
 import com.testTask.api.service.TopicService;
 import com.testTask.api.models.Topic;
@@ -34,11 +33,11 @@ public class TopicServiceImplementation implements TopicService {
         Topic topic = new Topic();
 
         topic.setTitle(topicDto.getTitle());
-
+        List<Message> messages = new ArrayList<>();
         if (topicDto.getMessages() != null && !topicDto.getMessages().isEmpty()) {
-            List<Message> messages = new ArrayList<>();
             for (MessageDto messageDto : topicDto.getMessages()) {
                 Message message = new Message();
+                message.setId(messageDto.getId());
                 message.setAuthor(messageDto.getAuthor());
                 message.setContent(messageDto.getContent());
                 message.setCreatedAt(LocalDateTime.now());
@@ -54,6 +53,11 @@ public class TopicServiceImplementation implements TopicService {
         TopicDto topicResponse = new TopicDto();
         topicResponse.setId(newTopic.getId());
         topicResponse.setTitle(newTopic.getTitle());
+
+        List<MessageDto> messagesDto = messages.stream()
+                .map(this::mapToDtoMessage)
+                .toList();
+        topicResponse.setMessages(messagesDto);
         return topicResponse;
     }
 
@@ -104,8 +108,6 @@ public class TopicServiceImplementation implements TopicService {
         topicRepository.delete(topic);
     }
 
-
-
     private TopicDto mapToDto(Topic topic) {
         TopicDto topicDto = new TopicDto();
         topicDto.setId(topic.getId());
@@ -113,9 +115,12 @@ public class TopicServiceImplementation implements TopicService {
         return topicDto;
     }
 
-    private Topic mapToEntity(TopicDto topicDto) {
-        Topic topic = new Topic();
-        topic.setTitle(topicDto.getTitle());
-        return topic;
+    private MessageDto mapToDtoMessage(Message message) {
+        MessageDto messageDto = new MessageDto();
+        messageDto.setId(message.getId());
+        messageDto.setAuthor(message.getAuthor());
+        messageDto.setContent(message.getContent());
+        messageDto.setCreatedAt(message.getCreatedAt());
+        return messageDto;
     }
 }
